@@ -195,7 +195,8 @@ void GazeboMotorModel::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf) {
   getSdfParam<double>(
       _sdf, "timeConstantDown", time_constant_down_, time_constant_down_);
   getSdfParam<double>(
-      _sdf, "rotorVelocitySlowdownSim", rotor_velocity_slowdown_sim_, 10);
+      _sdf, "rotorVelocitySlowdownSim",
+                      rotor_velocity_slowdown_sim_, 1);
 
 // Set the maximumForce on the joint. This is deprecated from V5 on, and the
 // joint won't move.
@@ -285,9 +286,9 @@ void GazeboMotorModel::CreatePubsAndSubs() {
   //  ACTUAL MOTOR FORCE MSG SETUP (GAZEBO->ROS)  //
   // ============================================ //
 
-  if (publish_force_) {
+  //if (publish_force_) {
     motor_force_pub_ = node_handle_->Advertise<gz_std_msgs::Float32>(
-        "~/" + namespace_ + "/" + motor_force_pub_topic_, 1);
+   "~/" + namespace_ + "/" + motor_force_pub_topic_, 1);
 
     connect_gazebo_to_ros_topic_msg.set_gazebo_topic(
         "~/" + namespace_ + "/" + motor_force_pub_topic_);
@@ -297,7 +298,7 @@ void GazeboMotorModel::CreatePubsAndSubs() {
         gz_std_msgs::ConnectGazeboToRosTopic::FLOAT_32);
     gz_connect_gazebo_to_ros_topic_pub->Publish(
         connect_gazebo_to_ros_topic_msg, true);
-  }
+  //}
 
   // ============================================ //
   // = CONTROL COMMAND MSG SETUP (ROS->GAZEBO) = //
@@ -400,9 +401,8 @@ void GazeboMotorModel::UpdateForcesAndMoments() {
       int real_motor_velocity_sign =
           (real_motor_velocity > 0) - (real_motor_velocity < 0);
       // Assuming symmetric propellers (or rotors) for the thrust calculation.
-      double thrust = turning_direction_ * real_motor_velocity_sign *
-                      real_motor_velocity * real_motor_velocity *
-                      motor_constant_;
+      double thrust = real_motor_velocity * real_motor_velocity
+          * motor_constant_;
 
       // Apply a force to the link.
       link_->AddRelativeForce(math::Vector3(0, 0, thrust));
@@ -430,7 +430,8 @@ void GazeboMotorModel::UpdateForcesAndMoments() {
       math::Pose pose_difference =
           link_->GetWorldCoGPose() - parent_links.at(0)->GetWorldCoGPose();
       math::Vector3 drag_torque(
-          0, 0, -turning_direction_ * thrust * moment_constant_);
+          0, 0,
+                                turning_direction_ * thrust * moment_constant_);
       // Transforming the drag torque into the parent frame to handle
       // arbitrary rotor orientations.
       math::Vector3 drag_torque_parent_frame =
@@ -439,7 +440,8 @@ void GazeboMotorModel::UpdateForcesAndMoments() {
 
       math::Vector3 rolling_moment;
       // - \omega * \mu_1 * V_A^{\perp}
-      rolling_moment = -std::abs(real_motor_velocity) *
+      rolling_moment = -std::abs(real_motor_velocity)
+          *
                        rolling_moment_coefficient_ *
                        body_velocity_perpendicular;
       parent_links.at(0)->AddTorque(rolling_moment);

@@ -1,24 +1,28 @@
 <?xml version="1.0" ?>
-<sdf version="1.4">
+<sdf version="1.5">
   <world name="default">
+    <!-- A ground plane -->
     <include>
       <uri>model://ground_plane</uri>
     </include>
+    <!-- A global light source -->
     <include>
       <uri>model://sun</uri>
     </include>
-
-    <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
-         topic to a ROS topic (or vise versa). -->
-    <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
-
+    
+     <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>47.3667</latitude_deg>
+      <longitude_deg>8.5500</longitude_deg>
+      <elevation>500.0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
     <physics type='ode'>
       <ode>
         <solver>
           <type>quick</type>
-          <iters>400</iters>
+          <iters>1000</iters>
           <sor>1.3</sor>
-          <use_dynamic_moi_rescaling>0</use_dynamic_moi_rescaling>
         </solver>
         <constraints>
           <cfm>0</cfm>
@@ -27,10 +31,10 @@
           <contact_surface_layer>0.001</contact_surface_layer>
         </constraints>
       </ode>
-      <max_step_size>0.002</max_step_size>
+      <max_step_size>0.01</max_step_size>
       <real_time_factor>1</real_time_factor>
-      <real_time_update_rate>-1</real_time_update_rate>
-      <gravity>0 0 -9.8066</gravity>
-    </physics>
+      <real_time_update_rate>100</real_time_update_rate>
+      <gravity>0 0 -9.8</gravity>
+    
   </world>
 </sdf>

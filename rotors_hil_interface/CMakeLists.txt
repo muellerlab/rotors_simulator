@@ -31,7 +31,7 @@ find_package(Eigen REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES rotors_hil_interface
+  #LIBRARIES rotors_hil_interface
   CATKIN_DEPENDS geometry_msgs mav_msgs mavros mavros_msgs roscpp sensor_msgs
   DEPENDS
 )
@@ -43,26 +43,26 @@ include_directories(
   ${mavros_msgs_INCLUDE_DIRS}
 )
 
-add_library(rotors_hil_interface
-  src/hil_sensor_level_interface.cpp
-  src/hil_state_level_interface.cpp
-)
+#add_library(rotors_hil_interface
+#  src/hil_sensor_level_interface.cpp
+#  src/hil_state_level_interface.cpp
+#)
 
-target_link_libraries(rotors_hil_interface ${catkin_LIBRARIES} ${mavros_LIBRARIES})
-add_dependencies(rotors_hil_interface ${catkin_EXPORTED_TARGETS} ${mavros_EXPORTED_TARGETS} ${mavros_msgs_EXPORTED_TARGETS})
+#target_link_libraries(rotors_hil_interface ${catkin_LIBRARIES} ${mavros_LIBRARIES})
+#add_dependencies(rotors_hil_interface ${catkin_EXPORTED_TARGETS} ${mavros_EXPORTED_TARGETS} ${mavros_msgs_EXPORTED_TARGETS})
 
-add_executable(rotors_hil_interface_node src/hil_interface_node.cpp)
-add_dependencies(rotors_hil_interface_node ${catkin_EXPORTED_TARGETS} )
-target_link_libraries(rotors_hil_interface_node rotors_hil_interface ${catkin_LIBRARIES})
+#add_executable(rotors_hil_interface_node src/hil_interface_node.cpp)
+#add_dependencies(rotors_hil_interface_node ${catkin_EXPORTED_TARGETS} )
+#target_link_libraries(rotors_hil_interface_node rotors_hil_interface ${catkin_LIBRARIES})
 
-install(TARGETS
-    rotors_hil_interface
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-)
+#install(TARGETS
+#    rotors_hil_interface
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#)
 
-install(TARGETS
-    rotors_hil_interface_node
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#install(TARGETS
+#    rotors_hil_interface_node
+#  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)

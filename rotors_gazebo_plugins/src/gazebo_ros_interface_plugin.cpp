@@ -22,6 +22,7 @@
 #include <chrono>
 #include <cmath>
 #include <iostream>
+#include <mutex>
 
 // 3RD PARTY
 #include <std_msgs/Header.h>
@@ -29,8 +30,13 @@
 
 namespace gazebo {
 
+std::mutex cmdRadioChannelMutex;  //protect against concurrency problems
+
 GazeboRosInterfacePlugin::GazeboRosInterfacePlugin()
-    : WorldPlugin(), gz_node_handle_(0), ros_node_handle_(0) {}
+    : WorldPlugin(),
+      gz_node_handle_(0),
+      ros_node_handle_(0) {
+}
 
 GazeboRosInterfacePlugin::~GazeboRosInterfacePlugin() {
   event::Events::DisconnectWorldUpdateBegin(updateConnection_);
@@ -50,6 +56,7 @@ void GazeboRosInterfacePlugin::Load(physics::WorldPtr _world,
 
   /// \brief    Store the pointer to the model.
   world_ = _world;
+
 
   // namespace_.clear();
 
@@ -100,11 +107,24 @@ void GazeboRosInterfacePlugin::Load(physics::WorldPtr _world,
   gz_broadcast_transform_sub_ = gz_node_handle_->Subscribe(
       "~/" + kBroadcastTransformSubtopic,
       &GazeboRosInterfacePlugin::GzBroadcastTransformMsgCallback, this);
+
+  //ROS Publisher to mocap_output (TODO: it is the same as simulator_truth, add noise)
+  this->pubMoCap.reset(
+   new ros::Publisher(
+   ros_node_handle_->advertise<hiperlab_rostools::mocap_output>(
+   "mocap_output" + std::to_string(vehicleId),
+   1)));
+
+  t.reset(new Timer(&simTimer));
+
+  timePublishNextMocap = 0;
+
 }
 
 void GazeboRosInterfacePlugin::OnUpdate(const common::UpdateInfo& _info) {
   // Do nothing
   // This plugins actions are all executed through message callbacks.
+
 }
 
 /// \brief      A helper class that provides storage for additional parameters
@@ -394,17 +414,20 @@ void GazeboRosInterfacePlugin::ConvertHeaderRosToGz(
 //===========================================================================//
 
 void GazeboRosInterfacePlugin::GzActuatorsMsgCallback(
-    GzActuatorsMsgPtr& gz_actuators_msg, ros::Publisher ros_publisher) {
+    GzActuatorsMsgPtr& gz_actuators_msg,
+    ros::Publisher ros_publisher) {
   // We need to convert the Acutuators message from a Gazebo message to a
   // ROS message and then publish it to the ROS framework
+
 
   ConvertHeaderGzToRos(gz_actuators_msg->header(), &ros_actuators_msg_.header);
 
   ros_actuators_msg_.angular_velocities.resize(
       gz_actuators_msg->angular_velocities_size());
+
   for (int i = 0; i < gz_actuators_msg->angular_velocities_size(); i++) {
-    ros_actuators_msg_.angular_velocities[i] =
-        gz_actuators_msg->angular_velocities(i);
+    ros_actuators_msg_.angular_velocities[i] = gz_actuators_msg
+        ->angular_velocities(i);
   }
 
   // Publish to ROS.
@@ -713,6 +736,9 @@ void GazeboRosInterfacePlugin::GzOdometryMsgCallback(
 
 void GazeboRosInterfacePlugin::GzPoseMsgCallback(GzPoseMsgPtr& gz_pose_msg,
                                                  ros::Publisher ros_publisher) {
+  math::Pose current_pose;
+  current_mocap.vehicleID = vehicleId;
+
   ros_pose_msg_.position.x = gz_pose_msg->position().x();
   ros_pose_msg_.position.y = gz_pose_msg->position().y();
   ros_pose_msg_.position.z = gz_pose_msg->position().z();
@@ -722,7 +748,38 @@ void GazeboRosInterfacePlugin::GzPoseMsgCallback(GzPoseMsgPtr& gz_pose_msg,
   ros_pose_msg_.orientation.y = gz_pose_msg->orientation().y();
   ros_pose_msg_.orientation.z = gz_pose_msg->orientation().z();
 
+  if (t->GetSeconds<double>() > timePublishNextMocap) {
+    timePublishNextMocap += 1 / frequencyMocapOutput;
+
+  current_pose.pos.x = ros_pose_msg_.position.x;
+  current_pose.pos.y = ros_pose_msg_.position.y;
+  current_pose.pos.z = ros_pose_msg_.position.z;
+
+  current_pose.rot.w = ros_pose_msg_.orientation.w;
+  current_pose.rot.x = ros_pose_msg_.orientation.x;
+  current_pose.rot.y = ros_pose_msg_.orientation.y;
+  current_pose.rot.z = ros_pose_msg_.orientation.z;
+
+  current_mocap.posx = current_pose.pos.x;
+  current_mocap.posy = current_pose.pos.y;
+  current_mocap.posz = current_pose.pos.z;
+
+  current_mocap.attq0 = current_pose.rot.w;
+  current_mocap.attq1 = current_pose.rot.x;
+  current_mocap.attq2 = current_pose.rot.y;
+  current_mocap.attq3 = current_pose.rot.z;
+
+  math::Vector3 quatToEuler = current_pose.rot.GetAsEuler();
+  current_mocap.attroll = quatToEuler.x;
+  current_mocap.attpitch = quatToEuler.y;
+  current_mocap.attyaw = quatToEuler.z;
+
+  current_mocap.header.stamp = ros::Time::now();
+
+  pubMoCap->publish(current_mocap);
+  }
   ros_publisher.publish(ros_pose_msg_);
+
 }
 
 void GazeboRosInterfacePlugin::GzPoseWithCovarianceStampedMsgCallback(

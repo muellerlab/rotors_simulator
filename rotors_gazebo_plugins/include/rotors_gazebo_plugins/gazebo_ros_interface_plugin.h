@@ -18,6 +18,13 @@
 #define ROTORS_GAZEBO_PLUGINS_MSG_INTERFACE_PLUGIN_H
 
 // SYSTEM INCLUDES
+#include <memory>
+#include <mutex>
+#include <thread>
+#include <chrono>
+#include <iostream>
+#include <../stdio.h>
+#include <../boost/bind.hpp>
 #include <random>
 
 #include <Eigen/Core>
@@ -31,6 +38,7 @@
 #include <mav_msgs/default_topics.h>
 #include <ros/callback_queue.h>
 #include <ros/ros.h>
+#include "ros/subscribe_options.h"
 #include <tf/transform_broadcaster.h>
 
 //============= GAZEBO MSG TYPES ==============//
@@ -76,6 +84,18 @@
 
 #include "rotors_gazebo_plugins/common.h"
 
+//=============== Hiperlab ================//
+#include "hiperlab_rostools/mocap_output.h"
+#include "hiperlab_rostools/telemetry.h"
+#include "hiperlab_rostools/radio_command.h"
+
+#include "Common/Time/ManualTimer.hpp"
+#include "Common/Time/HardwareTimer.hpp"
+#include "Components/Simulation/UWBNetwork.hpp"
+#include "Components/Logic/QuadcopterLogic.hpp"
+#include "Components/Simulation/CommunicationsDelay.hpp"
+#include "Components/Simulation/SimulationObject6DOF.hpp"
+
 namespace gazebo {
 
 // typedef's to make life easier
@@ -114,12 +134,14 @@ typedef const boost::shared_ptr<const gz_sensor_msgs::JointState>
 typedef const boost::shared_ptr<const gz_sensor_msgs::MagneticField>
     GzMagneticFieldMsgPtr;
 typedef const boost::shared_ptr<const gz_sensor_msgs::NavSatFix> GzNavSatFixPtr;
+typedef const boost::shared_ptr<Onboard::QuadcopterLogic> LogicPtr;
 
 /// \brief    ROS interface plugin for Gazebo.
 /// \details  This routes messages to/from Gazebo and ROS. This is used
 ///           so that individual plugins are not ROS dependent.
 ///           This is a WorldPlugin, only one of these is designed to be enabled
 ///           per Gazebo world.
+
 class GazeboRosInterfacePlugin : public WorldPlugin {
  public:
   GazeboRosInterfacePlugin();
@@ -144,7 +166,7 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   ///   RosMsgT     The type of the message published to the ROS framework.
   template <typename GazeboMsgT, typename RosMsgT>
   void ConnectHelper(void (GazeboRosInterfacePlugin::*fp)(
-                         const boost::shared_ptr<GazeboMsgT const>&,
+          const boost::shared_ptr<GazeboMsgT const>&,
                          ros::Publisher),
                      GazeboRosInterfacePlugin* ptr, std::string gazeboNamespace,
                      std::string gazeboTopicName, std::string rosTopicName,
@@ -160,6 +182,7 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
 
   /// \brief  Handle for the ROS node.
   ros::NodeHandle* ros_node_handle_;
+  ros::NodeHandle nh_;
 
   /// \brief  Pointer to the world.
   physics::WorldPtr world_;
@@ -214,7 +237,9 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   // ACTUATORS
   void GzActuatorsMsgCallback(GzActuatorsMsgPtr& gz_actuators_msg,
                               ros::Publisher ros_publisher);
+  void callLogic();
   mav_msgs::Actuators ros_actuators_msg_;
+
 
   // FLOAT32
   void GzFloat32MsgCallback(GzFloat32MsgPtr& gz_float_32_msg,
@@ -329,8 +354,21 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
 
   tf::Transform tf_;
   tf::TransformBroadcaster transform_broadcaster_;
+
+  int const vehicleId = 14;
+  int id = vehicleId;
+
+  std::shared_ptr<ros::Publisher> pubMoCap;
+  hiperlab_rostools::mocap_output current_mocap;
+
+  const double frequencyMocapOutput = 200;
+  double timePublishNextMocap;
+  std::shared_ptr<Timer> t;
+  HardwareTimer simTimer;
+
 };
 
 }  // namespace gazebo
+
 
 #endif  // #ifndef ROTORS_GAZEBO_PLUGINS_MSG_INTERFACE_PLUGIN_H

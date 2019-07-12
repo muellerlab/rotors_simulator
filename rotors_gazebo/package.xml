@@ -28,5 +28,12 @@
   <depend>rotors_gazebo_plugins</depend>
   <depend>sensor_msgs</depend>
   <depend>xacro</depend>
+  <depend>hiperlab_common</depend>
+  <depend>hiperlab_components</depend>
+  <depend>hiperlab_hardware</depend>
+  <depend>hiperlab_rostools</depend>
+  <depend>rotors_control</depend>
+  <depend>message_generation</depend>
+  <depend>std_msgs</depend>
 
 </package>

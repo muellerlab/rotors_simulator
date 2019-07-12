@@ -41,5 +41,7 @@
   <depend>std_srvs</depend>
   <depend>tf</depend>
   <depend>yaml-cpp</depend>
+  <depend>hiperlab_rostools</depend>
+  <depend>hiperlab_components</depend>
 
 </package>

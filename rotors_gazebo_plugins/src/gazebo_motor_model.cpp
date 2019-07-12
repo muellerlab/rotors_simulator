@@ -195,7 +195,8 @@ void GazeboMotorModel::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf) {
   getSdfParam<double>(
       _sdf, "timeConstantDown", time_constant_down_, time_constant_down_);
   getSdfParam<double>(
-      _sdf, "rotorVelocitySlowdownSim", rotor_velocity_slowdown_sim_, 10);
+      _sdf, "rotorVelocitySlowdownSim",
+                      rotor_velocity_slowdown_sim_, 1);
 
   // Listen to the update event. This event is broadcast every
   // simulation iteration.
@@ -279,9 +280,9 @@ void GazeboMotorModel::CreatePubsAndSubs() {
   //  ACTUAL MOTOR FORCE MSG SETUP (GAZEBO->ROS)  //
   // ============================================ //
 
-  if (publish_force_) {
+  //if (publish_force_) {
     motor_force_pub_ = node_handle_->Advertise<gz_std_msgs::Float32>(
-        "~/" + namespace_ + "/" + motor_force_pub_topic_, 1);
+   "~/" + namespace_ + "/" + motor_force_pub_topic_, 1);
 
     connect_gazebo_to_ros_topic_msg.set_gazebo_topic(
         "~/" + namespace_ + "/" + motor_force_pub_topic_);
@@ -291,7 +292,7 @@ void GazeboMotorModel::CreatePubsAndSubs() {
         gz_std_msgs::ConnectGazeboToRosTopic::FLOAT_32);
     gz_connect_gazebo_to_ros_topic_pub->Publish(
         connect_gazebo_to_ros_topic_msg, true);
-  }
+  //}
 
   // ============================================ //
   // = CONTROL COMMAND MSG SETUP (ROS->GAZEBO) = //

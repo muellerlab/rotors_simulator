@@ -26,5 +26,11 @@
   <depend>nav_msgs</depend>
   <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
+  <depend>hiperlab_common</depend>
+  <depend>hiperlab_components</depend>
+  <depend>hiperlab_hardware</depend>
+  <depend>hiperlab_rostools</depend>
+  <depend>rospy</depend>
+  <depend>message_runtime</depend>
 
 </package>

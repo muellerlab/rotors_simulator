@@ -43,7 +43,7 @@ if(NO_ROS)
   return()
 endif()
 
-find_package(catkin REQUIRED COMPONENTS gazebo_msgs geometry_msgs mav_msgs roscpp sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS gazebo_msgs geometry_msgs mav_msgs roscpp sensor_msgs hiperlab_common hiperlab_components rotors_control)
 
 catkin_package(
   CATKIN_DEPENDS
@@ -52,9 +52,31 @@ catkin_package(
     mav_msgs
     roscpp
     sensor_msgs
+    hiperlab_common
+    hiperlab_components
+    hiperlab_hardware
+    hiperlab_rostools
+    message_generation
+    std_msgs 
+    rotors_control
 )
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include 
+${catkin_INCLUDE_DIRS}
+${GAZEBO_INCLUDE_DIRS}
+${GAZEBO_MSG_INCLUDE_DIRS})
+
+link_libraries(
+  ${GAZEBO_LIBRARIES}
+  )
+  
+link_directories(
+  ${GAZEBO_LIBRARY_DIRS}
+  )
+
+#add_library(QuadcopterLogic
+#  rotors_simulator/rotors_control/src/library/QuadcopterLogic.cpp
+#)
 
 add_executable(waypoint_publisher src/waypoint_publisher.cpp)
 target_link_libraries(waypoint_publisher ${catkin_LIBRARIES})
@@ -68,12 +90,20 @@ add_executable(hovering_example src/hovering_example.cpp)
 target_link_libraries(hovering_example ${catkin_LIBRARIES})
 add_dependencies(hovering_example ${catkin_EXPORTED_TARGETS})
 
+#[[add_executable(hovering_example2 src/hovering_example2.cpp)
+target_link_libraries(hovering_example2 ${catkin_LIBRARIES})
+add_dependencies(hovering_example2 ${catkin_EXPORTED_TARGETS})
+
+#add_executable(hipelab_example src/hiperlab_example.cpp)
+#target_link_libraries(hovering_example ${catkin_LIBRARIES})
+#add_dependencies(hovering_example ${catkin_EXPORTED_TARGETS})]]
+
 foreach(dir launch models resource worlds)
    install(DIRECTORY ${dir}/
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
 endforeach(dir)
 
-install(TARGETS waypoint_publisher waypoint_publisher_file hovering_example
+install(TARGETS waypoint_publisher waypoint_publisher_file hovering_example #hovering_example2
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

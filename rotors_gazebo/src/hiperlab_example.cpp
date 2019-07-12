@@ -29,15 +29,17 @@
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
 #include <mav_msgs/Actuators.h>
 
+#include "../Logic/QuadcopterLogic.hpp"
+
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "hovering_example");
+  ros::init(argc, argv, "hiperlab_example");
   ros::NodeHandle nh;
   // Create a private node handle for accessing node parameters.
   ros::NodeHandle nh_private("~");
-  ros::Publisher trajectory_pub =
-      nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>(
-          mav_msgs::default_topics::COMMAND_TRAJECTORY, 10);
+  ros::Publisher actuators_pub =
+      nh.advertise<mav_msgs::Actuators>(
+          mav_msgs::default_topics::COMMAND_ACTUATORS, 1);
   ROS_INFO("Started hovering example.");
 
   std_srvs::Empty srv;
@@ -62,8 +64,8 @@ int main(int argc, char** argv) {
   // Wait for 5 seconds to let the Gazebo GUI show up.
   ros::Duration(5.0).sleep();
 
-  trajectory_msgs::MultiDOFJointTrajectory trajectory_msg;
-  trajectory_msg.header.stamp = ros::Time::now();
+  mav_msgs::Actuators actuators_msg;
+  mav_msg.header.stamp = ros::Time::now();
 
   // Default desired position and yaw.
 	Eigen::Vector3d desired_position(0.0, 0.0, 2.0);
@@ -75,13 +77,13 @@ int main(int argc, char** argv) {
   nh_private.param("z", desired_position.z(), desired_position.z());
   nh_private.param("yaw", desired_yaw, desired_yaw);
 
-  mav_msgs::msgMultiDofJointTrajectoryFromPositionYaw(
-      desired_position, desired_yaw, &trajectory_msg);
+  QuadcopterLogic::RunControllerFullyAutonomous(
+      desired_position, desired_yaw, &mav_msg);
 
   ROS_INFO("Publishing waypoint on namespace %s: [%f, %f, %f].",
            nh.getNamespace().c_str(), desired_position.x(),
            desired_position.y(), desired_position.z());
-  trajectory_pub.publish(trajectory_msg);
+  actuators_pub.publish(actuators_msg);
 
   ros::spinOnce();
   ros::shutdown();

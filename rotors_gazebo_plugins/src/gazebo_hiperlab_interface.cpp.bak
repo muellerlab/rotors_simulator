@@ -13,7 +13,7 @@
 namespace gazebo {
 
 GazeboHiperlabInterface::~GazeboHiperlabInterface() {
-  event::Events::DisconnectWorldUpdateBegin(updateConnection_);
+  
 }
 
 void GazeboHiperlabInterface::Load(physics::ModelPtr _model,

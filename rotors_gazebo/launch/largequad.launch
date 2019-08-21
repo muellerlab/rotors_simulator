@@ -10,6 +10,7 @@
   <!-- The following line causes gzmsg and gzerr messages to be printed to the console
       (even when Gazebo is started through roslaunch) -->
   <arg name="verbose" default="false"/>
+  <arg name="vehicleID" default="14"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -29,7 +30,7 @@
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
     </include>
-    <node name="Hiperlab_Controller" pkg="rotors_control" type="Hiperlab_Controller" output="screen">
+    <node name="Hiperlab_Controller" pkg="rotors_control" type="Hiperlab_Controller" output="screen" args="$(arg vehicleID)">
       <remap from="odometry" to="odometry_sensor1/odometry" />
     </node>
     <!-- We should add something to convert gazebo pose messages to ROS mocap messages here /-->

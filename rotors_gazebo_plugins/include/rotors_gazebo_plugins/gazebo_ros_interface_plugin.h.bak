@@ -19,12 +19,6 @@
 
 // SYSTEM INCLUDES
 #include <memory>
-#include <mutex>
-#include <thread>
-#include <chrono>
-#include <iostream>
-#include <../stdio.h>
-#include <../boost/bind.hpp>
 #include <random>
 
 #include <Eigen/Core>
@@ -38,7 +32,6 @@
 #include <mav_msgs/default_topics.h>
 #include <ros/callback_queue.h>
 #include <ros/ros.h>
-#include "ros/subscribe_options.h"
 #include <tf/transform_broadcaster.h>
 
 //============= GAZEBO MSG TYPES ==============//
@@ -86,62 +79,37 @@
 
 //=============== Hiperlab ================//
 #include "hiperlab_rostools/mocap_output.h"
-#include "hiperlab_rostools/telemetry.h"
-#include "hiperlab_rostools/radio_command.h"
-
-#include "Common/Time/ManualTimer.hpp"
-#include "Common/Time/HardwareTimer.hpp"
-#include "Components/Simulation/UWBNetwork.hpp"
-#include "Components/Logic/QuadcopterLogic.hpp"
-#include "Components/Simulation/CommunicationsDelay.hpp"
-#include "Components/Simulation/SimulationObject6DOF.hpp"
 
 namespace gazebo {
 
 // typedef's to make life easier
-typedef const boost::shared_ptr<const gz_std_msgs::ConnectGazeboToRosTopic>
-    GzConnectGazeboToRosTopicMsgPtr;
-typedef const boost::shared_ptr<const gz_std_msgs::ConnectRosToGazeboTopic>
-    GzConnectRosToGazeboTopicMsgPtr;
+typedef const boost::shared_ptr<const gz_std_msgs::ConnectGazeboToRosTopic> GzConnectGazeboToRosTopicMsgPtr;
+typedef const boost::shared_ptr<const gz_std_msgs::ConnectRosToGazeboTopic> GzConnectRosToGazeboTopicMsgPtr;
 typedef const boost::shared_ptr<const gz_std_msgs::Float32> GzFloat32MsgPtr;
-typedef const boost::shared_ptr<const gz_geometry_msgs::Odometry>
-    GzOdometryMsgPtr;
+typedef const boost::shared_ptr<const gz_geometry_msgs::Odometry> GzOdometryMsgPtr;
 typedef const boost::shared_ptr<const gazebo::msgs::Pose> GzPoseMsgPtr;
 typedef const boost::shared_ptr<
-    const gz_geometry_msgs::PoseWithCovarianceStamped>
-    GzPoseWithCovarianceStampedMsgPtr;
-typedef const boost::shared_ptr<const gz_geometry_msgs::TransformStamped>
-    GzTransformStampedMsgPtr;
+    const gz_geometry_msgs::PoseWithCovarianceStamped> GzPoseWithCovarianceStampedMsgPtr;
+typedef const boost::shared_ptr<const gz_geometry_msgs::TransformStamped> GzTransformStampedMsgPtr;
 typedef const boost::shared_ptr<
-    const gz_geometry_msgs::TransformStampedWithFrameIds>
-    GzTransformStampedWithFrameIdsMsgPtr;
-typedef const boost::shared_ptr<const gz_geometry_msgs::TwistStamped>
-    GzTwistStampedMsgPtr;
-typedef const boost::shared_ptr<const gz_geometry_msgs::Vector3dStamped>
-    GzVector3dStampedMsgPtr;
-typedef const boost::shared_ptr<const gz_geometry_msgs::WrenchStamped>
-    GzWrenchStampedMsgPtr;
-typedef const boost::shared_ptr<const gz_mav_msgs::RollPitchYawrateThrust>
-    GzRollPitchYawrateThrustPtr;
+    const gz_geometry_msgs::TransformStampedWithFrameIds> GzTransformStampedWithFrameIdsMsgPtr;
+typedef const boost::shared_ptr<const gz_geometry_msgs::TwistStamped> GzTwistStampedMsgPtr;
+typedef const boost::shared_ptr<const gz_geometry_msgs::Vector3dStamped> GzVector3dStampedMsgPtr;
+typedef const boost::shared_ptr<const gz_geometry_msgs::WrenchStamped> GzWrenchStampedMsgPtr;
+typedef const boost::shared_ptr<const gz_mav_msgs::RollPitchYawrateThrust> GzRollPitchYawrateThrustPtr;
 typedef const boost::shared_ptr<const gz_mav_msgs::WindSpeed> GzWindSpeedMsgPtr;
-typedef const boost::shared_ptr<const gz_sensor_msgs::Actuators>
-    GzActuatorsMsgPtr;
-typedef const boost::shared_ptr<const gz_sensor_msgs::FluidPressure>
-    GzFluidPressureMsgPtr;
+typedef const boost::shared_ptr<const gz_sensor_msgs::Actuators> GzActuatorsMsgPtr;
+typedef const boost::shared_ptr<const gz_sensor_msgs::FluidPressure> GzFluidPressureMsgPtr;
 typedef const boost::shared_ptr<const gz_sensor_msgs::Imu> GzImuPtr;
-typedef const boost::shared_ptr<const gz_sensor_msgs::JointState>
-    GzJointStateMsgPtr;
-typedef const boost::shared_ptr<const gz_sensor_msgs::MagneticField>
-    GzMagneticFieldMsgPtr;
+typedef const boost::shared_ptr<const gz_sensor_msgs::JointState> GzJointStateMsgPtr;
+typedef const boost::shared_ptr<const gz_sensor_msgs::MagneticField> GzMagneticFieldMsgPtr;
 typedef const boost::shared_ptr<const gz_sensor_msgs::NavSatFix> GzNavSatFixPtr;
-typedef const boost::shared_ptr<Onboard::QuadcopterLogic> LogicPtr;
 
 /// \brief    ROS interface plugin for Gazebo.
 /// \details  This routes messages to/from Gazebo and ROS. This is used
 ///           so that individual plugins are not ROS dependent.
 ///           This is a WorldPlugin, only one of these is designed to be enabled
 ///           per Gazebo world.
-
 class GazeboRosInterfacePlugin : public WorldPlugin {
  public:
   GazeboRosInterfacePlugin();
@@ -164,13 +132,13 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   ///   GazeboMsgT  The type of the message that will be subscribed to the
   ///   Gazebo framework.
   ///   RosMsgT     The type of the message published to the ROS framework.
-  template <typename GazeboMsgT, typename RosMsgT>
-  void ConnectHelper(void (GazeboRosInterfacePlugin::*fp)(
-          const boost::shared_ptr<GazeboMsgT const>&,
-                         ros::Publisher),
-                     GazeboRosInterfacePlugin* ptr, std::string gazeboNamespace,
-                     std::string gazeboTopicName, std::string rosTopicName,
-                     transport::NodePtr gz_node_handle);
+  template<typename GazeboMsgT, typename RosMsgT>
+  void ConnectHelper(
+      void (GazeboRosInterfacePlugin::*fp)(
+          const boost::shared_ptr<GazeboMsgT const>&, ros::Publisher),
+      GazeboRosInterfacePlugin* ptr, std::string gazeboNamespace,
+      std::string gazeboTopicName, std::string rosTopicName,
+      transport::NodePtr gz_node_handle);
 
   std::vector<gazebo::transport::NodePtr> nodePtrs_;
   std::vector<gazebo::transport::SubscriberPtr> subscriberPtrs_;
@@ -182,7 +150,6 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
 
   /// \brief  Handle for the ROS node.
   ros::NodeHandle* ros_node_handle_;
-  ros::NodeHandle nh_;
 
   /// \brief  Pointer to the world.
   physics::WorldPtr world_;
@@ -215,7 +182,7 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   ///             If no publisher exists, this method creates one and returns
   ///             that instead.
   /// \warning    Finding an already created publisher is not supported yet!
-  template <typename T>
+  template<typename T>
   transport::PublisherPtr FindOrMakeGazeboPublisher(std::string topic);
 
   // ============================================ //
@@ -237,9 +204,7 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   // ACTUATORS
   void GzActuatorsMsgCallback(GzActuatorsMsgPtr& gz_actuators_msg,
                               ros::Publisher ros_publisher);
-  void callLogic();
   mav_msgs::Actuators ros_actuators_msg_;
-
 
   // FLOAT32
   void GzFloat32MsgCallback(GzFloat32MsgPtr& gz_float_32_msg,
@@ -284,8 +249,7 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   void GzPoseWithCovarianceStampedMsgCallback(
       GzPoseWithCovarianceStampedMsgPtr& gz_pose_with_covariance_stamped_msg,
       ros::Publisher ros_publisher);
-  geometry_msgs::PoseWithCovarianceStamped
-      ros_pose_with_covariance_stamped_msg_;
+  geometry_msgs::PoseWithCovarianceStamped ros_pose_with_covariance_stamped_msg_;
 
   // POSITION STAMPED
   void GzVector3dStampedMsgCallback(
@@ -330,8 +294,7 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
 
   // ROLL PITCH YAWRATE THRUST
   void RosRollPitchYawrateThrustMsgCallback(
-      const mav_msgs::RollPitchYawrateThrustConstPtr&
-          ros_roll_pitch_yawrate_thrust_msg_ptr,
+      const mav_msgs::RollPitchYawrateThrustConstPtr& ros_roll_pitch_yawrate_thrust_msg_ptr,
       gazebo::transport::PublisherPtr gz_publisher_ptr);
 
   // WIND SPEED
@@ -355,20 +318,13 @@ class GazeboRosInterfacePlugin : public WorldPlugin {
   tf::Transform tf_;
   tf::TransformBroadcaster transform_broadcaster_;
 
-  int const vehicleId = 14;
-  int id = vehicleId;
-
   std::shared_ptr<ros::Publisher> pubMoCap;
-  hiperlab_rostools::mocap_output current_mocap;
-
-  const double frequencyMocapOutput = 200;
-  double timePublishNextMocap;
-  std::shared_ptr<Timer> t;
-  HardwareTimer simTimer;
+  int vehicleId;
+  ros::Duration periodMocapOutput; // [s]
+  ros::Time lastMocapPubTime;
 
 };
 
 }  // namespace gazebo
-
 
 #endif  // #ifndef ROTORS_GAZEBO_PLUGINS_MSG_INTERFACE_PLUGIN_H

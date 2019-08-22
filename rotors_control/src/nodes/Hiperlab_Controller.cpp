@@ -39,7 +39,7 @@ HiperlabController::HiperlabController(ros::NodeHandle& nh, int vehicleId,
   _logic.SetIMUMeasurementTemperature(tempMeas);
 
   //Initialize the queue to listen to radio commands
-  double timeDelayOffboardControlLoop = 0.02;
+  double timeDelayOffboardControlLoop = 0.0;
   _cmdRadioChannel.queue.reset(
       new Simulation::CommunicationsDelay<
           RadioTypes::RadioMessageDecoded::RawMessage>(

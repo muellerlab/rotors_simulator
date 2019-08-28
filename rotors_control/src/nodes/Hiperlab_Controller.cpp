@@ -65,7 +65,7 @@ void HiperlabController::callbackImu(const sensor_msgs::Imu &imuMsg) {
                                    imuMsg.angular_velocity.z);
   _logic.SetIMUMeasurementAccelerometer(imuMsg.linear_acceleration.x,
                                         imuMsg.linear_acceleration.y,
-                                        imuMsg.linear_acceleration.z + 9.81);
+                                        imuMsg.linear_acceleration.z);
 }
 
 void HiperlabController::Run() {

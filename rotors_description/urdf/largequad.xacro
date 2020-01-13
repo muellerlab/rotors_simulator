@@ -6,7 +6,7 @@
   <xacro:property name="rotor_velocity_slowdown_sim" value="1" />
   <xacro:property name="use_mesh_file" value="true" />
   <xacro:property name="mesh_file" value="package://rotors_description/meshes/largequad.dae" />
-  <xacro:property name="mass" value="0.66799" /> <!-- [kg] -->
+  <xacro:property name="mass" value="0.675" /> <!-- [kg] -->
   <xacro:property name="body_width" value="0.28" /> <!-- [m] -->
   <xacro:property name="body_height" value="0.07" /> <!-- [m] -->
   <xacro:property name="mass_rotor" value="0.00495" /> <!-- [kg] -->
